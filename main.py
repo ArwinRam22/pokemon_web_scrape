@@ -16,7 +16,6 @@ quit = False
 
 while (quit == False):
     print(f'''
-    0 = Quit
     *1 = Pokemon's Information (Pokédex Data, Training, Breeding, Stats)
     2 = Pokemon's Moves (Learned By Levelup, Learned By Evolution, Egg Moves, TM, TR) 
     
