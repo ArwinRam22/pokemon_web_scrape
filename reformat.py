@@ -148,7 +148,7 @@ def reformat_local_no(input):
 def replace(simplify, search, replacement):
     result = simplify
     while result.find(search) != -1:
-        result = result[:result.find(search)] + replacement + result[result.find(find)+len(search):]
+        result = result[:result.find(search)] + replacement + result[result.find(search)+len(search):]
     return result
 
 #####################################################################################################################
