@@ -285,3 +285,21 @@ def output_all_moves_table(table, generation):
 
         effect = move.find('td', class_ = 'cell-long-text').text
         output_file.append_to_file(f"{effect}#\n")
+
+def output_all_abilities(table):
+    output_file = text_file("All Abilities")
+    output_file.write_to_file("")
+    body = table.find('tbody')
+    rows = body.find_all('tr')
+    for ability in rows:
+        name = ability.find(class_ = 'ent-name').text
+        output_file.append_to_file(f"{name}#")
+
+        count = ability.find(class_ = 'cell-num cell-total').text
+        output_file.append_to_file(f"{count}#")
+
+        desc = ability.find(class_ = 'cell-med-text').text
+        output_file.append_to_file(f"{desc}#")
+
+        generation = ability.find(class_ = 'cell-num').text
+        output_file.append_to_file(f"{generation}#\n")
