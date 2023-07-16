@@ -19,8 +19,6 @@ while (quit == False):
     0 = Quit
     *1 = Pokemon's Information (Pokédex Data, Training, Breeding, Stats)
     2 = Pokemon's Moves (Learned By Levelup, Learned By Evolution, Egg Moves, TM, TR) 
-    3 = Pokemon's Weaknesses
-
     
     97 = Output All Abilities
     98 = Output All Moves
@@ -45,14 +43,6 @@ while (quit == False):
         else:
             webscrape.web_scrape_moves(pokemon_choice, generation, False)
         
-    elif choice == '3':
-        pokemon_choice = input("What Pokemon would you like to search for: ")
-        x = input("Write to a text file? (y/n): ")
-        if (x == 'y'):
-            webscrape.web_scrape_effectiveness(pokemon_choice, True)
-        else:
-            webscrape.web_scrape_effectiveness(pokemon_choice, False)
-
     elif choice == '97':
         webscrape.web_scrape_all_abilities()
 
