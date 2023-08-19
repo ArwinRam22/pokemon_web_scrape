@@ -240,15 +240,27 @@ def output_battle_info_aux(vital, output_file):
             else:
                 if (header == 'Type'):
                     typing_data = reformat.reformat_type(data)
-                    output_file.append_to_file(f"{typing_data}" + '#')
+
+                    if (len(typing_data) == 2):
+                        output_file.append_to_file(f"{typing_data[0]}, {typing_data[1]}#")
+                    else:
+                        output_file.append_to_file(f"{typing_data}#")
+
                 elif (header == 'Abilities'):            
                     data = data.replace(' (hidden ability)', '*')
                     ability_data = reformat.reformat_ability(data)
-                    output_file.append_to_file(f"{ability_data}" + '#')
+                    if (len(ability_data) == 3):
+                        output_file.append_to_file(f"{ability_data[0]}, {ability_data[1]}, {ability_data[2]}#")
+                    elif (len(ability_data) == 2):
+                        output_file.append_to_file(f"{ability_data[0]}, {ability_data[1]}#")
+                    else:
+                        output_file.append_to_file(f"{ability_data}#")
+
                 elif (header == 'Local №'):
                     locale_data = reformat.reformat_local_no(data)
                     for x in locale_data:
                         output_file.append_to_file(f"{x}" + '#')
+                        
         if (header == 'Speed'): #Last element in battle_information
             output_file.append_to_file(f"\n")
 
