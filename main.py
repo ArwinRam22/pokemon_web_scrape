@@ -9,13 +9,14 @@
 #-------------------------------------------------------
 
 #Imports
-import webscrape, file
+import webscrape, file, reformat
 
 #Variables
 quit = False
 
 while (quit == False):
     print(f'''
+    0 = Quit
     1 = Pokemon's Information (Pokédex Data, Training, Breeding, Stats)
     2 = Pokemon's Moves (Learned By Levelup, Learned By Evolution, Egg Moves, TM, TR) 
     
@@ -25,39 +26,33 @@ while (quit == False):
     ''')
     choice = input("What would you like to search for: ")
         
-    if choice == '1':
+    if (choice == '1' or choice == '2' or choice == '99'):
         pokemon_choice = input("What Pokemon would you like to search for: ")
-        x = input("Write to a text file? (y/n): ")
-        if (x == 'y'):
-            webscrape.web_scrape_basics(pokemon_choice, True, False)
-        else:
-            webscrape.web_scrape_basics(pokemon_choice, False, False)
+        formattedPokemon_Choice = reformat.pokemon_name_changer(pokemon_choice)
 
-    elif choice == '2':
-        pokemon_choice = input("What Pokemon would you like to search for: ")
-        generation = input("Which generation for moves learned: ")
-        x = input("Write to a text file? (y/n): ")
-        if (x == 'y'):
-            webscrape.web_scrape_moves(pokemon_choice, generation, True)
-        else:
-            webscrape.web_scrape_moves(pokemon_choice, generation, False)
+        if (choice == '2'):
+            generation = input("Which generation for moves learned: ")
+
+    if (choice == '98'):
+        move_generation = input("Which generation for moves learned (1-9) or 'all': ")
+    
+    if choice == '1':       webscrape.web_scrape_basics(formattedPokemon_Choice, False)
+
+    elif choice == '2':     webscrape.web_scrape_moves(formattedPokemon_Choice, generation)
         
-    elif choice == '97':
-        webscrape.web_scrape_all_abilities()
+    elif choice == '97':    webscrape.web_scrape_all_abilities()
 
-    elif choice == '98':
-        generation = input("Which generation for moves learned (1-9) or 'all': ")
-        webscrape.web_scrape_all_moves(generation)
+    elif choice == '98':    webscrape.web_scrape_all_moves(move_generation)
 
     elif choice == '99':
-        output_file = file.text_file("Battle Information")
+        output_file = file.text_file("Basic Information")
         output_file.write_to_file("")
-        pokemon_choice = input("What Pokemon would you like to start at: ")
-        x = int(input("How many Pokemon would you like to web-scrape?: "))
-        for y in range(x):
-            webscrape.web_scrape_basics(pokemon_choice, True, True)
-            print(f"{pokemon_choice} complete!\n")
-            pokemon_choice = webscrape.find_next_pokemon(pokemon_choice)
-       
+        numOfPokemon = int(input("How many Pokemon would you like to web-scrape?: "))
+        currentPokemon = formattedPokemon_Choice
+        for eachPokemon in range(numOfPokemon):
+            webscrape.web_scrape_basics(currentPokemon, True)
+            formattedPokemon_Choice = webscrape.find_next_pokemon(currentPokemon)
+            print(f'{currentPokemon} finished.')
+            currentPokemon = formattedPokemon_Choice            
     else:
         quit = True
