@@ -12,41 +12,29 @@
 from bs4 import BeautifulSoup
 import requests
 
-import printing
-import reformat
-import file
+import printing, reformat, file
 
 #####################################################################################################################
-#Validates the 'soup' object
-    # Parameters
-        #(Object)    soup    = HTML file of link of Pokemon entered by user
-    #Return
-        #(Boolean)   valid   => False if user entered non-existing Pokemon name, True if user entered valid Pokemon name
+#*
+base_url    = 'https://pokemondb.net/pokedex/'
+move_url    = 'https://pokemondb.net/move/'
+ability_url = 'https://pokemondb.net/ability'
 def valid_url(soup):
     valid = True
-
     proof = soup.find('h1')
     if (proof.text == "Page not found"):
         valid = False
-        print("Page not found")
     return valid
-
-#####################################################################################################################
-#Changes pokemon_name into name for URL
-    # Parameters
-        #(String)    pokemon_name       = Name of Pokemon
-    #Return
-        #(String)    new_pokemon_name   = Modified Name suitable for URL
-def pokemon_name_changer(pokemon_name):
-    new_pokemon_name = reformat.replace(pokemon_name, ' ', '-')
-    new_pokemon_name = reformat.replace(pokemon_name, '.', '')
-    new_pokemon_name = reformat.replace(pokemon_name, '♀', '-f')
-    new_pokemon_name = reformat.replace(pokemon_name, '♂', '-m')
-    new_pokemon_name = reformat.replace(pokemon_name, 'é', 'e')
-    new_pokemon_name = reformat.replace(pokemon_name, ':', '')
-    new_pokemon_name = reformat.replace(pokemon_name, '\'', '')
-
-    return new_pokemon_name
+#*
+def soup_creator(url):
+    #Gets access to link's html data
+    html_text = requests.get(url).text
+    soup = BeautifulSoup(html_text, 'lxml')
+    if (valid_url(soup)):
+        return soup
+    else:
+        print(f'Page not found: {url}')
+        return -1
 
 #####################################################################################################################
 #Webscrapes following information:
@@ -78,19 +66,11 @@ def pokemon_name_changer(pokemon_name):
 # Parameters
     #(String)   pokemon_name    = Pokemon name entered by user
     #(Boolean)  boolean_output  = True = user wants output on .txt file, False = user does not want output on .txt file
-
-def web_scrape_basics(pokemon_name, boolean_output, boolean_export):
+def web_scrape_basics(pokemon_name, battleInfoExport_Boolean):
     #Determines the link of the Pokémon
-    base_url = 'https://pokemondb.net/pokedex/'
-    new_pokemon_name = pokemon_name_changer(pokemon_name)
-    url = base_url + new_pokemon_name
-    
-    #Gets access to link's html data
-    html_text = requests.get(url).text
-    soup = BeautifulSoup(html_text, 'lxml')
-    
-    if valid_url(soup):
-        
+    url = base_url + pokemon_name
+    soup = soup_creator(url)
+    if (soup != -1):
         #Section of website with required information
         panel = soup.find('div', class_ = 'sv-tabs-panel-list')
         
@@ -102,28 +82,26 @@ def web_scrape_basics(pokemon_name, boolean_output, boolean_export):
         #   --> e.g. Wooper has 2 forms => [Wooper, Paldean Wooper]
         forms = soup.find('div', class_ = 'sv-tabs-tab-list').text.split('\n')  #Note: First and last value is '\n'
 
-        if (boolean_export):
-            file.output_battle_info(pokemon_name.capitalize(), vitals, forms)
+        if (battleInfoExport_Boolean):
+            file.condensedBasicInfo(pokemon_name.capitalize(), vitals, forms)
         else:
             printing.print_basic_info(pokemon_name.capitalize(), vitals, forms)
-            if (boolean_output):                
-                file.output_basic_table(pokemon_name.capitalize(), vitals, forms)
+            
+            # writeToTxt = input("Write to a text file? (y/n): ")
+            # if (writeToTxt.lower() == 'y'):
+            #     file.output_basic_info(pokemon_name.capitalize(), vitals, forms)
 
 #####################################################################################################################
 #Webscrapes moves from specified generation or all moves
     # Parameters
         #(String)    generation       = Number from 1-9 or 'all'
 def web_scrape_all_moves(generation):
-    url = 'https://pokemondb.net/move/'
     if (generation.lower() == 'all'):
-        url += generation
+        new_move_url = move_url + generation
     else:
-        url += 'generation/' + generation
-    #Gets access to link's html data
-    html_text = requests.get(url).text
-    soup = BeautifulSoup(html_text, 'lxml')
-
-    if (valid_url(soup)):
+        new_move_url = move_url + 'generation/' + generation
+    soup = soup_creator(new_move_url)
+    if (soup != -1):
         table = soup.find('tbody')
         printing.print_all_moves_table(table)
         file.output_all_moves_table(table, generation)
@@ -131,11 +109,8 @@ def web_scrape_all_moves(generation):
 #####################################################################################################################
 #Webscrapes abilities from all generations
 def web_scrape_all_abilities():
-    url = 'https://pokemondb.net/ability'
-    html_text = requests.get(url).text
-    soup = BeautifulSoup(html_text, 'lxml')
-
-    if (valid_url):
+    soup = soup_creator(ability_url)
+    if (soup != -1):
         table = soup.find('table', class_ = 'data-table sticky-header block-wide')
         printing.print_all_abilities(table)
         file.output_all_abilities(table)
@@ -146,22 +121,17 @@ def web_scrape_all_abilities():
         #(String)    pokemon_name       = Name of pokemon to search moveset
         #(String)    generation       = Generation of which moves learned 
         #(Boolean)    boolean_output       = True if user wants to output results onto text file
-def web_scrape_moves(pokemon_name, generation, boolean_output):
-    #Determines the link of the Pokémon
-    starting_url = 'https://pokemondb.net/pokedex/'
-    ending_url = '/moves/'    
-    new_pokemon_name = pokemon_name_changer(pokemon_name)
-    url = starting_url + new_pokemon_name + ending_url + generation
-    html_text = requests.get(url).text
-    soup = BeautifulSoup(html_text, 'lxml')
-
-    if valid_url(soup):
+def web_scrape_moves(pokemon_name, generation):
+    url = base_url + pokemon_name + '/moves/' + generation
+    soup = soup_creator(url)
+    if (soup != -1):
         #Regions in the generation chosen
         regions = soup.find('div', class_ = 'sv-tabs-tab-list').text.split('\n')
         panels = soup.find_all('div', class_ = 'sv-tabs-panel')
         
         printing.print_move_table(pokemon_name, generation, panels, regions)
-        if (boolean_output):
+        writeToTxt = input("Write to a text file? (y/n): ")
+        if (writeToTxt.lower() == 'y'):
             file.output_move_table(pokemon_name, panels, regions)
 
 #####################################################################################################################
@@ -171,17 +141,9 @@ def web_scrape_moves(pokemon_name, generation, boolean_output):
     #Return
         #(String)    next_pokemon   = Name of next Pokemon
 def find_next_pokemon(pokemon_name):
-
-    #Determines the link of the Pokémon
-    base_url = 'https://pokemondb.net/pokedex/'
-    new_pokemon_name = pokemon_name_changer(pokemon_name)
-    url = base_url + new_pokemon_name
-    
-    #Gets access to link's html data
-    html_text = requests.get(url).text
-    soup = BeautifulSoup(html_text, 'lxml')
-    if valid_url(soup):
-        #Go to next Pokemon using website HTML
+    url = base_url + pokemon_name
+    soup = soup_creator(url)
+    if (soup != -1):
         if pokemon_name.lower() == 'bulbasaur':  #1st Pokemon (Bulbasaur) has a different page layout that the rest
             next_pokemon = soup.find('nav', class_ = 'entity-nav component')
             next_pokemon = next_pokemon.text.replace('\n', '')
@@ -193,5 +155,4 @@ def find_next_pokemon(pokemon_name):
         if (next_pokemon == None):
             return 0
 
-        next_pokemon = next_pokemon[6:].lower()
-        return next_pokemon
+        return reformat.pokemon_name_changer(next_pokemon[6:].lower())

@@ -10,6 +10,31 @@
 
 #Imports
 import re
+
+
+#####################################################################################################################
+#Changes pokemon_name into name for URL
+    # Parameters
+        #(String)    pokemon_name       = Name of Pokemon
+    #Return
+        #(String)    new_pokemon_name   = Modified Name suitable for URL
+def pokemon_name_changer(pokemon_name):
+    replacementCharacters = {
+        ' ': '-',
+        '.': '',
+        '♀': '-f',
+        '♂': '-m',
+        'é': 'e',
+        ':': '',
+        '\'': ''
+    }
+    illegalCharacters = [' ', '.', '♀', '♂', 'é', ':', '\'']
+
+    for x in illegalCharacters:
+        if x in pokemon_name:
+            pokemon_name = replace(pokemon_name, x, replacementCharacters.get(x))
+
+    return pokemon_name
 #####################################################################################################################
 # Reformats typing input
 # Since Pokemon typing are 1 word, splits the input from uppercase letter to another
@@ -20,8 +45,7 @@ import re
 
 def reformat_type(input):
     # Returns an array of 1 or 2 elements of the Pokémon's typing
-    result = re.findall('[A-Z][a-z]*', input)
-    return result
+    return list_to_string(re.findall('[A-Z][a-z]*', input)) 
 
 #####################################################################################################################
 # Expands short form version of typing 
@@ -32,24 +56,33 @@ def reformat_type(input):
         # (String) = Typing Name
 
 def reformat_typing(input):
-    if (input == 'Nor'):    return 'Normal'
-    if (input == 'Fir'):    return 'Fire'
-    if (input == 'Wat'):    return 'Water'
-    if (input == 'Ele'):    return 'Electric'
-    if (input == 'Gra'):    return 'Grass'
-    if (input == 'Ice'):    return 'Ice'
-    if (input == 'Poi'):    return 'Poison'
-    if (input == 'Gro'):    return 'Ground'
-    if (input == 'Fly'):    return 'Flying'
-    if (input == 'Roc'):    return 'Rock'
-    if (input == 'Dra'):    return 'Dragon'
-    if (input == 'Ste'):    return 'Steel'
-    if (input == 'Psy'):    return 'Psychic'
-    if (input == 'Gho'):    return 'Ghost'
-    if (input == 'Dar'):    return 'Dark'
-    if (input == 'Fig'):    return 'Fighting'
-    if (input == 'Bug'):    return 'Bug'
-    if (input == 'Fai'):    return 'Fairy'
+    typeList = {
+        'Nor': 'Normal',
+        'Fir': 'Fire',
+        'Wat': 'Water',
+        'Ele': 'Electric',
+        'Gra': 'Grass',
+        'Ice': 'Ice',
+        'Poi': 'Poison',
+        'Gro': 'Ground',
+        'Fly': 'Flying',
+        'Roc': 'Rock',
+        'Dra': 'Dragon',
+        'Ste': 'Steel',
+        'Psy': 'Psychic',
+        'Gho': 'Ghost',
+        'Dar': 'Dark',
+        'Fig': 'Fighting',
+        'Bug': 'Bug',
+        'Fai': 'Fairy'
+    }
+
+    if (input in typeList.keys()):
+        return typeList.get(input)
+    elif (input in list(typeList.values)):
+        return list(typeList.keys)[list(typeList.values).index(input)]
+
+    return -1
 
 #####################################################################################################################
 # Reformats ability input
@@ -117,11 +150,11 @@ def reformat_ability(input):
             abilities[2] = abilities[2][:len(abilities[2])-1]
             abilities[2] = replace(abilities[2], '_', ' ')
 
-    #adds '*' to last ability to indicate it is a hidden ability
-    if '*' in input:
-        abilities[len(abilities)-1] = abilities[len(abilities)-1] + '*'
+        #adds '*' to last ability to indicate it is a hidden ability
+        if '*' in input:
+            abilities[len(abilities)-1] = abilities[len(abilities)-1] + '*'
 
-    return (abilities)
+    return list_to_string(abilities)
 
 #####################################################################################################################
 # Reformats local number
@@ -181,4 +214,11 @@ def remove_beginning_white_space(simplify):
     while (simplify[current_index].isspace()):
         current_index += 1
     result = simplify[current_index:]
+    return result
+
+def list_to_string(list_to_convert):
+    result = list_to_convert.pop(0)
+    for x in list_to_convert:
+        result += f', {list_to_convert.pop(0)}'
+
     return result
