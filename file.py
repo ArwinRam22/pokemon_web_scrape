@@ -29,7 +29,8 @@ class text_file:
             f.write(output)
             f.close()
 
-def output_basic_table(starting_pokemon, vitals, forms):
+# Planned to remove
+def output_basic_info(starting_pokemon, vitals, forms):
     form_number = 1
     iterations = 0
     num_tables = 4
@@ -37,41 +38,35 @@ def output_basic_table(starting_pokemon, vitals, forms):
     for vital in vitals:
         if (iterations % num_tables == 0 or iterations == 0):
             if (len(forms)-2 == 1):
-                output_file = text_file(starting_pokemon.capitalize() + " Information")
-                output_file.write_to_file('<'*25 + " " + starting_pokemon.upper() + " " + '>'*25)
-            else: # Mod by 4 since only displaying 4 tables
-                output_file = text_file(forms[form_number].capitalize() + " Informations")
-                output_file.write_to_file('<'*25 + " " + forms[form_number].upper() + " " + '>'*25)
+                output_file = text_file(f'{starting_pokemon.capitalize()} Information')
+                output_file.write_to_file('<'*25 + f' {starting_pokemon.upper()} ' + '>'*25 + '\n')
+            else:
+                output_file = text_file(f'{forms[form_number].capitalize()} Information')
+                output_file.write_to_file('<'*25 + f' {forms[form_number].upper()} ' + '>'*25 + '\n')
                 form_number += 1
+        
+        rows = vital.find_all('tr')
+        for row in rows:
+            header = row.find('th').text
+            data = row.find('td').text
+            data = reformat.replace(data, '\n', "")
 
-        output_basic_table_aux(vital, output_file)            
-        iterations += 1
-
-def output_basic_table_aux(vital, output_file):
-    formatting_required = ['Type', 'Abilities', 'Local №']
-
-    rows = vital.find_all('tr')
-    for row in rows:
-        header = row.find('th').text
-        data = row.find('td').text
-        data = reformat.replace(data, '\n', "")
-        if header not in formatting_required:
-            output_file.append_to_file(f"{header:>15}: {data}")
-        else:
-            if (header == 'Type'):
-                typing_data = reformat.reformat_type(data)
-                output_file.append_to_file(f"{header:>15}: {typing_data}")
-            elif (header == 'Abilities'):            
-                data = data.replace(' (hidden ability)', '*')
-                ability_data = reformat.reformat_ability(data)
-                output_file.append_to_file(f"{header:>15}: {ability_data}")
-            elif (header == 'Local №'):
+            if (header == 'Local №'):
                 locale_data = reformat.reformat_local_no(data)
-                output_file.append_to_file(f"{header:>15}:")
-                blank = ""
+                output_file.append_to_file(f"{'Local №':>15}:" + '\n')
                 for x in locale_data:
-                    output_file.append_to_file(f"{blank:>16} {x}")
-    output_file.append_to_file('='*50)
+                    output_file.append_to_file(f"{'':>16} {x}" + '\n')
+            else:
+                if (header == 'Type'):          data = reformat.reformat_type(data)
+                elif (header == 'Abilities'):   data = reformat.reformat_ability(data.replace(' (hidden ability)', '*'))
+                
+                output_file.append_to_file(f"{header:>15}: {data}" + '\n')
+
+        if (len(forms)-2 == 1):
+            output_file.append_to_file('='*(50 + len(starting_pokemon)+2))
+        else:
+            output_file.append_to_file('='*(50 + len(forms[form_number])+2))
+        iterations += 1
 
 def output_move_table(pokemon_name, panels, regions):
     region_count = 1   
@@ -160,109 +155,65 @@ def output_move(moves, header, output_file):
         
         if (header != 'Egg moves' and header != 'Move Tutor moves' and header != 'Transfer-only moves' and header != 'Pre-evolution moves'):
             level_learned = numbers[0].text
-            temp = "Level: "
-            output_file.append_to_file(f"{temp:>15}: {level_learned}")
-
-        name = move.find('td', class_ = 'cell-name').text
-        temp = "Move Name: "
-        output_file.append_to_file(f"{temp:>15}: {name}")
-
-        type = move.find('td', class_ = 'cell-icon').text
-        temp = "Type: "
-        output_file.append_to_file(f"{temp:>15}: {type}")
-
-        category = re.findall('[A-Z][a-z]*', str(move.find('td', class_ = 'cell-icon text-center')))
-        temp = "Category: "
-        output_file.append_to_file(f"{temp:>15}: {category[0]}")
-        
-        if (header != 'Egg moves' and header != 'Move Tutor moves' and header != 'Transfer-only moves' and header != 'Pre-evolution moves'):
             power = numbers[1].text
-            temp = "Power: "
-            output_file.append_to_file(f"{temp:>15}: {power}")
-
             accuracy = numbers[2].text
-            temp = "Accuracy: "
-            output_file.append_to_file(f"{temp:>15}: {accuracy}")
+            output_file.append_to_file(f"{'Level':>15}: {level_learned}")
         else:
             power = numbers[0].text
-            temp = "Power: "
-            output_file.append_to_file(f"{temp:>15}: {power}")
-
             accuracy = numbers[1].text
-            temp = "Accuracy: "
-            output_file.append_to_file(f"{temp:>15}: {accuracy}")
+
+        name = move.find('td', class_ = 'cell-name').text
+        type = move.find('td', class_ = 'cell-icon').text
+        category = re.findall('[A-Z][a-z]*', str(move.find('td', class_ = 'cell-icon text-center')))
+
+        output_file.append_to_file(f"{'Move Name':>15}: {name}")
+        output_file.append_to_file(f"{'Type':>15}: {type}")
+        output_file.append_to_file(f"{'Category':>15}: {category[0]}")
+        output_file.append_to_file(f"{'Power':>15}: {power}")            
+        output_file.append_to_file(f"{'Accuracy':>15}: {accuracy}")
+
         if (header == 'Transfer-only moves'):
             method = move.find('td', class_ = 'text-small').text
-            temp = "Method: "
-            output_file.append_to_file(f"{temp:>15}: {method}")
+            output_file.append_to_file(f"{'Method':>15}: {method}")
 
-        output_file.append_to_file("")
+        output_file.append_to_file(f"\n")
 
 ###
 #Following methods are used to export data compactly in text files
 ###
-def output_battle_info(starting_pokemon, vitals, forms):
+def condensedBasicInfo(pokemonName, vitals, forms):
     form_number = 1
     iterations = 0
     num_tables = 4
-
-    output_file = text_file("Battle Information")
+    important_info = ['National №', 'Type', 'Abilities', 'HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed']
+    # useful_information = ['EV yield', 'Catch rate', 'Base Friendship', 'Base Exp.', 'Growth Rate', 'Egg Groups', 'Gender', 'Egg cycles']
+    # extra_information = ['Species', 'Height', 'Weight', 'Local №', 'Total']
+    output_file = text_file("Basic Information")
 
     for vital in vitals:
         if (iterations % num_tables == 0 or iterations == 0):
             if (len(forms)-2 == 1):
-                output_file.append_to_file(starting_pokemon.upper() + '#')
+                output_file.append_to_file(pokemonName.upper() + '#')
             else:
-                if (starting_pokemon.lower() in forms[form_number].lower()):
-                    output_file.append_to_file(forms[form_number].upper() + '#')
+                if (iterations > 0):
+                    output_file.append_to_file(f'\n')
+                if (pokemonName.lower() in reformat.pokemon_name_changer(forms[form_number].lower())):
+                    output_file.append_to_file(f'{forms[form_number].upper()}#')
                 else:
-                    output_file.append_to_file(starting_pokemon.upper() + " (" + forms[form_number].upper() + ')#')
+                    output_file.append_to_file(f'{pokemonName.upper()} ({forms[form_number].upper()})#')
                 form_number += 1
 
-        output_battle_info_aux(vital, output_file)            
+        rows = vital.find_all('tr')
+        for row in rows:
+            header = row.find('th').text
+            if (header in important_info):
+                data = reformat.replace(row.find('td').text, '\n', "")
+                if (header == 'Type'):          data = reformat.reformat_type(data)
+                elif (header == 'Abilities'):   data = reformat.reformat_ability(data.replace(' (hidden ability)', '*'))
+
+                output_file.append_to_file(f'{data}#')
         iterations += 1
-
-def output_battle_info_aux(vital, output_file):
-    formatting_required = ['Type', 'Abilities', 'Local №']
-    
-    battle_information = ['National №', 'Type', 'Abilities', 'HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed']
-
-    rows = vital.find_all('tr')
-
-    for row in rows:
-        header = row.find('th').text
-        data = row.find('td').text
-
-        if (header in battle_information):
-            data = reformat.replace(data, '\n', "")
-            if header not in formatting_required:
-                output_file.append_to_file(f"{data}" + '#')
-            else:
-                if (header == 'Type'):
-                    typing_data = reformat.reformat_type(data)
-
-                    if (len(typing_data) == 2):
-                        output_file.append_to_file(f"{typing_data[0]}, {typing_data[1]}#")
-                    else:
-                        output_file.append_to_file(f"{typing_data}#")
-
-                elif (header == 'Abilities'):            
-                    data = data.replace(' (hidden ability)', '*')
-                    ability_data = reformat.reformat_ability(data)
-                    if (len(ability_data) == 3):
-                        output_file.append_to_file(f"{ability_data[0]}, {ability_data[1]}, {ability_data[2]}#")
-                    elif (len(ability_data) == 2):
-                        output_file.append_to_file(f"{ability_data[0]}, {ability_data[1]}#")
-                    else:
-                        output_file.append_to_file(f"{ability_data}#")
-
-                elif (header == 'Local №'):
-                    locale_data = reformat.reformat_local_no(data)
-                    for x in locale_data:
-                        output_file.append_to_file(f"{x}" + '#')
-                        
-        if (header == 'Speed'): #Last element in battle_information
-            output_file.append_to_file(f"\n")
+    output_file.append_to_file(f'\n')
 
 def output_all_moves_table(table, generation):
     if (generation.lower() == 'all'):
@@ -273,29 +224,23 @@ def output_all_moves_table(table, generation):
     rows = table.find_all('tr')
     for move in rows:    
         name = move.find('td', class_ = 'cell-name').text
-        output_file.append_to_file(f"{name}#")
-
         type = move.find('td', class_ = 'cell-icon').text
-        output_file.append_to_file(f"{type}#")
-
         category = re.findall('[A-Z][a-z]*', str(move.find('td', class_ = 'cell-icon text-center')))
+        numbers = move.find_all('td', class_ = 'cell-num')
+        power = numbers[0].text
+        accuracy = numbers[1].text
+        power_points = numbers[2].text
+        effect = move.find('td', class_ = 'cell-long-text').text
+
+        output_file.append_to_file(f"{name}#")
+        output_file.append_to_file(f"{type}#")
         if (len(category) > 0):
             output_file.append_to_file(f"{category[0]}#")
         else:
-            category = '-'
-            output_file.append_to_file(f"{category}#")
-
-        numbers = move.find_all('td', class_ = 'cell-num')
-        power = numbers[0].text
+            output_file.append_to_file(f"{'-'}#")
         output_file.append_to_file(f"{power}#")
-
-        accuracy = numbers[1].text
         output_file.append_to_file(f"{accuracy}#")
-
-        power_points = numbers[2].text
         output_file.append_to_file(f"{power_points}#")
-
-        effect = move.find('td', class_ = 'cell-long-text').text
         output_file.append_to_file(f"{effect}#\n")
 
 def output_all_abilities(table):
@@ -305,13 +250,11 @@ def output_all_abilities(table):
     rows = body.find_all('tr')
     for ability in rows:
         name = ability.find(class_ = 'ent-name').text
-        output_file.append_to_file(f"{name}#")
-
         count = ability.find(class_ = 'cell-num cell-total').text
-        output_file.append_to_file(f"{count}#")
-
         desc = ability.find(class_ = 'cell-med-text').text
-        output_file.append_to_file(f"{desc}#")
+        generation = ability.find_all(class_ = 'cell-num')
 
-        generation = ability.find(class_ = 'cell-num').text
-        output_file.append_to_file(f"{generation}#\n")
+        output_file.append_to_file(f"{name}#")
+        output_file.append_to_file(f"{desc}#")
+        output_file.append_to_file(f"{count}#")
+        output_file.append_to_file(f"{generation[1].text}#\n")
